@@ -43,3 +43,5 @@ is_not_defined = QName(CardDAVNamespace, "is-not-defined")
 text_match = QName(CardDAVNamespace, "text-match")
 
 addressbook_multiget = QName(CardDAVNamespace, "addressbook-multiget")
+
+def_adbk_url = QName(CardDAVNamespace, "default-addressbook-URL")

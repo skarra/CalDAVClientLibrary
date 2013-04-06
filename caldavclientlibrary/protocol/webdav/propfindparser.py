@@ -29,7 +29,7 @@ class PropFindParser(MultiResponseParser):
     class PropFindResult(object):
 
         def __init__(self):
-            self.status = 200
+            self.status = "HTTP/1.1 200 OK"
             self.textProperties = {}
             self.hrefProperties = {}
             self.nodeProperties = {}

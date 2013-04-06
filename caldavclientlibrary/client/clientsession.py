@@ -20,6 +20,7 @@ from caldavclientlibrary.protocol.caldav.makecalendar import MakeCalendar
 from caldavclientlibrary.protocol.carddav.makeaddressbook import MakeAddressBook
 from caldavclientlibrary.protocol.http.authentication.basic import Basic
 from caldavclientlibrary.protocol.http.authentication.digest import Digest
+from caldavclientlibrary.protocol.http.util import parseStatusLine
 from caldavclientlibrary.protocol.webdav.synccollection import SyncCollection
 from caldavclientlibrary.protocol.caldav.query import QueryVEVENTTimeRange
 try:
@@ -538,12 +539,14 @@ class CalDAVSession(Session):
 
             # Look at each propfind result
             for item in parser.getResults().itervalues():
+                # item is of type webdav.propfindparser.PropFindResult
 
                 # Get child element name (decode URL)
                 name = URL(url=item.getResource(), decode=True)
-                if item.status == 404:
+                status = parseStatusLine(item.status)
+                if status == 404:
                     removed.add(name)
-                elif item.status / 100 != 2:
+                elif status / 100 != 2:
                     other.add(name)
                 else:
                     changed.add(name)

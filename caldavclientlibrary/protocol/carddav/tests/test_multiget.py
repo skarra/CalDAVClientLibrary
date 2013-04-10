@@ -18,10 +18,14 @@
 from caldavclientlibrary.protocol.webdav.session import Session
 from caldavclientlibrary.protocol.carddav.multiget import Multiget
 from StringIO import StringIO
+from caldavclientlibrary.protocol.url import URL
 from caldavclientlibrary.protocol.webdav.definitions import davxml
+from caldavclientlibrary.protocol.carddav.definitions import carddavxml
+from caldavclientlibrary.client.account import CalDAVAccount
 import unittest
 
-host = 'www.example.com'
+host = 'localhost:8443'
+ssl  = True
 
 class TestRequest(unittest.TestCase):
 
@@ -109,8 +113,29 @@ class TestRequestBody(unittest.TestCase):
 
 
 class TestResponse(unittest.TestCase):
-    pass
 
+    ## FIXME: These tests need to be adapted to specific installations and
+    ## settings. A better approach would be to install a setUp() method that
+    ## would PUT some of these resources at a given root, and then try to
+    ## multiget... Too much effort for now, but at a later point. maybe.
+
+    def test_Method(self):
+
+        global host, ssl, user
+        print host, ssl
+        acc = CalDAVAccount(host, ssl=ssl, user=raw_input('Username: '),
+                            pswd=raw_input('Password: '), logging=False)
+
+        root = "/addressbooks/__uids__/skarrag/addressbook/"
+        named_props = carddavxml.address_data
+        request = Multiget(acc.session,  root,
+                           hrefs=(root + "395dc187673076cdba17557d12f94ce5.vcf",
+                            root + "7d69f2f10edb55e9ec15f99cdd321b88.vcf",
+                            root + "8afb07c99deac51532a10a4070aa48ec.vcf"),
+                            props=(davxml.getetag, davxml.displayname))
+
+        acc.session.runSession(request)
+        self.assertEqual(request.getMethod(), "REPORT")
 
 
 class TestResponseHeaders(unittest.TestCase):
@@ -129,6 +154,8 @@ def main (argv=None):
     suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestBody)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestResponse)
+    unittest.TextTestRunner(verbosity=2).run(suite)
 
 if __name__ == '__main__':
     main()

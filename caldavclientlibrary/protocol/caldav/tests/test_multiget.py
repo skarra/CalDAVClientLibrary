@@ -18,7 +18,11 @@ from caldavclientlibrary.protocol.webdav.session import Session
 from caldavclientlibrary.protocol.caldav.multiget import Multiget
 from StringIO import StringIO
 from caldavclientlibrary.protocol.webdav.definitions import davxml
+from caldavclientlibrary.client.account import CalDAVAccount
 import unittest
+
+host = 'localhost:8443'
+ssl  = True
 
 class TestRequest(unittest.TestCase):
 
@@ -106,7 +110,15 @@ class TestRequestBody(unittest.TestCase):
 
 
 class TestResponse(unittest.TestCase):
-    pass
+
+    def test_Method(self):
+
+        global host, ssl, user
+
+        acc = CalDAVAccount(host, ssl=ssl, user=raw_input('Username: '),
+                            pswd=raw_input('Password: '), logging=True)
+        request = Multiget(acc.session, "/", ())
+        acc.session.runSession(request)
 
 
 
@@ -117,3 +129,16 @@ class TestResponseHeaders(unittest.TestCase):
 
 class TestResponseBody(unittest.TestCase):
     pass
+
+def main (argv=None):
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestRequest)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestBody)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestResponse)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+if __name__ == '__main__':
+    main()

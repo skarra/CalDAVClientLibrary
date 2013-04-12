@@ -18,6 +18,7 @@ from caldavclientlibrary.client.httpshandler import SmartHTTPConnection
 from caldavclientlibrary.protocol.caldav.definitions import headers
 from caldavclientlibrary.protocol.caldav.makecalendar import MakeCalendar
 from caldavclientlibrary.protocol.carddav.makeaddressbook import MakeAddressBook
+from caldavclientlibrary.protocol.carddav.multiget import Multiget
 from caldavclientlibrary.protocol.http.authentication.basic import Basic
 from caldavclientlibrary.protocol.http.authentication.digest import Digest
 from caldavclientlibrary.protocol.http.util import parseStatusLine
@@ -31,6 +32,7 @@ from caldavclientlibrary.protocol.http.data.string import ResponseDataString, Re
 from caldavclientlibrary.protocol.url import URL
 from caldavclientlibrary.protocol.webdav.acl import ACL
 from caldavclientlibrary.protocol.webdav.definitions import davxml
+from caldavclientlibrary.protocol.carddav.definitions import carddavxml
 from caldavclientlibrary.protocol.webdav.definitions import statuscodes
 from caldavclientlibrary.protocol.webdav.delete import Delete
 from caldavclientlibrary.protocol.webdav.get import Get
@@ -597,6 +599,35 @@ class CalDAVSession(Session):
             self.handleHTTPError(request)
 
         return hrefs
+
+
+    ## This works only for carddav multiget at the moment; but there is no
+    ## reason why this cannot be made more generic
+    def multiGet(self, rurl, hrefs, props):
+        """Fetches the specified props for the specified hrefs using a single
+        multoget call. The return value is a dictionary where the keys are the
+        hrefs and the values are PropFindResult objects containign results for
+        the requested props."""
+
+        assert(isinstance(rurl, URL))
+
+        request = Multiget(self, rurl.relativeURL(), hrefs=hrefs, props=props)
+        result = ResponseDataString()
+        request.setOutput(result)
+
+        # Process it
+        self.runSession(request)
+
+        # If it's a 207 we want to parse the XML
+        if request.getStatusCode() == statuscodes.MultiStatus:
+
+            parser = PropFindParser()
+            parser.parseData(result.getData())
+            return parser.getResults()
+
+        else:
+            self.handleHTTPError(request)
+            return None
 
 
     def deleteResource(self, rurl):

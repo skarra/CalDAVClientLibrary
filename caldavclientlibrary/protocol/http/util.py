@@ -15,6 +15,9 @@
 ##
 
 
+class HTTPError(Exception):
+    pass
+
 def parsetoken(text, delimiters=" \t"):
 
     if not text:

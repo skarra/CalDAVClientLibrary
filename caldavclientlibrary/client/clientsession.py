@@ -21,6 +21,7 @@ from caldavclientlibrary.protocol.carddav.makeaddressbook import MakeAddressBook
 from caldavclientlibrary.protocol.carddav.multiget import Multiget
 from caldavclientlibrary.protocol.http.authentication.basic import Basic
 from caldavclientlibrary.protocol.http.authentication.digest import Digest
+from caldavclientlibrary.protocol.http.util import HTTPError
 from caldavclientlibrary.protocol.http.util import parseStatusLine
 from caldavclientlibrary.protocol.webdav.synccollection import SyncCollection
 from caldavclientlibrary.protocol.caldav.query import QueryVEVENTTimeRange
@@ -949,7 +950,8 @@ class CalDAVSession(Session):
 
 
     def handleHTTPError(self, request):
-        print "Ignoring error: %d" % (request.getStatusCode(),)
+        raise HTTPError('Code: %s, Reason: %s' % (request.getStatusCode(),
+                                                  request.getStatusReason()))
 
 
     def getAuthorizor(self, first_time, wwwhdrs):

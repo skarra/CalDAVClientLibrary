@@ -119,23 +119,31 @@ class TestResponse(unittest.TestCase):
     ## would PUT some of these resources at a given root, and then try to
     ## multiget... Too much effort for now, but at a later point. maybe.
 
-    def test_Method(self):
+    @classmethod
+    def setUpClass(self):
 
-        global host, ssl, user
-        print host, ssl
-        acc = CalDAVAccount(host, ssl=ssl, user=raw_input('Username: '),
-                            pswd=raw_input('Password: '), logging=False)
+        self.acc = CalDAVAccount(host, ssl=ssl, user=raw_input('Username: '),
+                                 pswd=raw_input('Password: '), logging=False)
+        self.root = "/addressbooks/__uids__/skarrag/addressbook/"
+        hrefs = (self.root + "395dc187673076cdba17557d12f94ce5.vcf",
+                 self.root + "7d69f2f10edb55e9ec15f99cdd321b88.vcf",
+                 self.root + "8afb07c99deac51532a10a4070aa48ec.vcf")
 
-        root = "/addressbooks/__uids__/skarrag/addressbook/"
-        named_props = carddavxml.address_data
-        request = Multiget(acc.session,  root,
-                           hrefs=(root + "395dc187673076cdba17557d12f94ce5.vcf",
-                            root + "7d69f2f10edb55e9ec15f99cdd321b88.vcf",
-                            root + "8afb07c99deac51532a10a4070aa48ec.vcf"),
-                            props=(davxml.getetag, davxml.displayname))
+        self.request = Multiget(self.acc.session,  self.root, hrefs=hrefs,
+                                props=(davxml.getetag, davxml.displayname,
+                                       carddavxml.address_data,))
 
-        acc.session.runSession(request)
-        self.assertEqual(request.getMethod(), "REPORT")
+        self.acc.session.runSession(self.request)
+
+
+    def test_ResponseStatus(self):
+
+        self.assertEqual(self.request.getStatusCode(), 207)
+
+    def test_ResponseHeaders(self):
+
+        hdrs = self.request.getResponseHeaders()
+
 
 
 class TestResponseHeaders(unittest.TestCase):

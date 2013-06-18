@@ -875,7 +875,7 @@ class CalDAVSession(Session):
                         # Display error so user knows why the prompt occurs again - but not the first time
                         # as we might have a digest re-auth.
                         if not first_time:
-                            self.displayHTTPError(request)
+                            self.handleHTTPError(request)
 
                     # Get authorization object (prompt the user) and redo the request
                     self.authorization, cancelled = self.getAuthorizor(first_time, request.getResponseHeaders(headers.WWWAuthenticate))

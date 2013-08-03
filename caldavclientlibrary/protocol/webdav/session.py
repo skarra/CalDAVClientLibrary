@@ -14,6 +14,8 @@
 # limitations under the License.
 ##
 
+import logging, urlparse
+
 from caldavclientlibrary.protocol.http.data.string import ResponseDataString
 from caldavclientlibrary.protocol.http.definitions import methods
 from caldavclientlibrary.protocol.http.definitions import statuscodes
@@ -46,6 +48,8 @@ class Session(HTTPSession):
             sout = ResponseDataString()
             request.setData(None, sout)
 
+            logging.debug('Sending request %s to server %s%s...',
+                          methods.OPTIONS, host, base_uri)
             # Add request and process it
             self.sendRequest(request)
 
@@ -58,7 +62,7 @@ class Session(HTTPSession):
                     self.authorization = None
 
                     # Display error so user knows why the prompt occurs again
-                    self.displayHTTPError(request)
+                    self.handleHTTPError(request)
 
                 # Get authorization object (prompt the user) and redo the request
                 self.authorization, cancelled = self.getAuthorizor(first_time, request.getResponseHeaders(headers.WWWAuthenticate))
@@ -72,6 +76,19 @@ class Session(HTTPSession):
                 first_time = False
 
                 # Repeat the request loop with new authorization
+                continue
+
+            if request.getStatusCode() == statuscodes.Found:
+                ## We need to retry.
+                loc = request.getResponseHeaders(headers.Location)
+                parts = urlparse.urlsplit(loc[0])
+                ar = parts.netloc.split(':')
+                self.server = ar[0]
+                if len(ar) > 1:
+                    self.port = ar[1]
+                base_uri = '?'.join([parts.path, parts.query])
+                logging.debug('Server responded with 302. Redirecting to: %s',
+                              loc[0])
                 continue
 
             # Look for success and exit loop for further processing

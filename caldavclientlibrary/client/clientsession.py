@@ -49,7 +49,7 @@ from caldavclientlibrary.protocol.webdav.proppatch import PropPatch
 from caldavclientlibrary.protocol.webdav.put import Put
 from caldavclientlibrary.protocol.webdav.session import Session
 from xml.etree.ElementTree import Element, tostring
-import types
+import logging, types
 
 class CalDAVSession(Session):
 
@@ -903,6 +903,9 @@ class CalDAVSession(Session):
 
     def doRequest(self, request):
 
+        logging.debug('Sending Request URL: %s\tMethod: %s',
+                      request.url, request.method)
+
         # Write request headers
         self.connect.putrequest(request.method, request.url, skip_host=True, skip_accept_encoding=True)
         hdrs = request.getRequestHeaders()
@@ -931,15 +934,17 @@ class CalDAVSession(Session):
         # Get response headers
         request.setResponseStatus(response.version, response.status, response.reason)
         request.setResponseHeaders(response.msg.headers)
+        st = "HTTP/%s %s %s\r\n" % ({11: "1.1", 10: "1.0",
+                                     9: "0.9"}.get(response.version, "?"),
+                                     response.status,
+                                     response.reason)
         if self.loghttp and self.log:
-            self.log.write("HTTP/%s %s %s\r\n" % (
-                {11: "1.1", 10: "1.0", 9: "0.9"}.get(response.version, "?"),
-                response.status,
-                response.reason
-            ))
+            self.log.write(st)
             for hdr in response.msg.headers:
                 self.log.write(hdr)
             self.log.write("\n")
+
+        logging.debug('Received Response: %s', st)
 
         # Now get the data
         self.readResponseData(request, response)

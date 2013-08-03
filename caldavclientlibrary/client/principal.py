@@ -129,7 +129,11 @@ class CalDAVPrincipal(object):
                 davxml.displayname,
                 davxml.principal_URL,
                 davxml.alternate_URI_set,
-                davxml.group_member_set,
+                ## FIXME 03-Aug-2013: owncloud servers have issue with the
+                ## member_set property and throw a 500 Internal Server
+                ## error. We can only work around by not fetching this
+                ## property.
+                # davxml.group_member_set,
                 davxml.group_membership,
                 caldavxml.calendar_home_set,
                 caldavxml.schedule_outbox_URL,
